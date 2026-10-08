@@ -28,7 +28,9 @@ import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialThemeButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -86,7 +88,7 @@ fun AuthScreen(sessionStore: SessionStore) {
         }
     }
 
-    Surface(modifier = Modifier.fillMaxSize(), color = Theme.colorScheme.background) {
+    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Scaffold(
             containerColor = Color.Transparent,
             bottomBar = {
@@ -99,12 +101,12 @@ fun AuthScreen(sessionStore: SessionStore) {
                 ) {
                     Text(
                         "Mod owner  @XfuckX0",
-                        color = Theme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
                     )
                     Text(
                         "Supporto e aggiornamenti su Telegram",
-                        color = Theme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.primary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier
@@ -148,7 +150,7 @@ fun AuthScreen(sessionStore: SessionStore) {
 
                     Text(
                         if (isSignUp) "Crea il tuo account" else "Bentornato",
-                        color = Theme.colorScheme.onBackground,
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 29.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -159,7 +161,7 @@ fun AuthScreen(sessionStore: SessionStore) {
                         } else {
                             "Accedi alla tua esperienza ChatGPT Mod."
                         },
-                        color = Theme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         textAlign = TextAlign.Center
                     )
@@ -255,7 +257,7 @@ fun AuthScreen(sessionStore: SessionStore) {
                             if (error != null) {
                                 Text(
                                     text = error.orEmpty(),
-                                    color = Theme.colorScheme.error,
+                                    color = MaterialTheme.colorScheme.error,
                                     fontSize = 12.sp,
                                     modifier = Modifier.padding(horizontal = 4.dp)
                                 )
@@ -270,7 +272,7 @@ fun AuthScreen(sessionStore: SessionStore) {
                                     .height(53.dp),
                                 shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Theme.colorScheme.primary
+                                    containerColor = MaterialTheme.colorScheme.primary
                                 )
                             ) {
                                 Text(
@@ -300,7 +302,7 @@ fun AuthScreen(sessionStore: SessionStore) {
 
                     Text(
                         "Accesso locale â€¢ credenziali salvate sul dispositivo",
-                        color = Theme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         fontSize = 10.sp,
                         textAlign = TextAlign.Center
                     )
@@ -336,4 +338,5 @@ private fun AuthModeButton(
         }
     }
 }
+
 

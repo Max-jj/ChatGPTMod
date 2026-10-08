@@ -1,4 +1,4 @@
-package com.xfuckx0.chatgptmod.ui.screen
+﻿package com.xfuckx0.chatgptmod.ui.screen
 
 import android.content.Intent
 import android.net.Uri
@@ -47,6 +47,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -132,7 +133,7 @@ fun ChatScreen(
         }
     ) {
         Scaffold(
-            containerColor = Theme.colorScheme.background,
+            containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
                     title = {
@@ -143,9 +144,9 @@ fun ChatScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                "Nemotron 3 Ultra • Free",
+                                "Nemotron 3 Ultra â€¢ Free",
                                 fontSize = 11.sp,
-                                color = Theme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     },
@@ -159,7 +160,7 @@ fun ChatScreen(
                             Surface(
                                 modifier = Modifier.size(34.dp),
                                 shape = CircleShape,
-                                color = Theme.colorScheme.surfaceVariant
+                                color = MaterialTheme.colorScheme.surfaceVariant
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
                                     Text(
@@ -175,8 +176,8 @@ fun ChatScreen(
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Theme.colorScheme.background,
-                        titleContentColor = Theme.colorScheme.onBackground
+                        containerColor = MaterialTheme.colorScheme.background,
+                        titleContentColor = MaterialTheme.colorScheme.onBackground
                     )
                 )
             },
@@ -265,7 +266,7 @@ private fun EmptyChat(modifier: Modifier) {
             Spacer(Modifier.height(7.dp))
             Text(
                 "Chiedimi qualsiasi cosa.",
-                color = Theme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 14.sp
             )
             Spacer(Modifier.height(26.dp))
@@ -286,7 +287,7 @@ private fun EmptyChat(modifier: Modifier) {
                     Icon(
                         Icons.Outlined.ChatBubbleOutline,
                         contentDescription = null,
-                        tint = Theme.colorScheme.onSurfaceVariant
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.width(12.dp))
                     Text(suggestion, fontSize = 14.sp)
@@ -351,7 +352,7 @@ private fun MessageRow(message: ChatMessage) {
                         Icon(
                             Icons.Outlined.ContentCopy,
                             contentDescription = "Copia",
-                            tint = Theme.colorScheme.onSurfaceVariant,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(17.dp)
                         )
                     }
@@ -359,7 +360,7 @@ private fun MessageRow(message: ChatMessage) {
                         Icon(
                             Icons.Outlined.MoreHoriz,
                             contentDescription = "Altre opzioni",
-                            tint = Theme.colorScheme.onSurfaceVariant,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -390,8 +391,8 @@ private fun TypingRow() {
         }
         Spacer(Modifier.width(12.dp))
         Text(
-            "Sta scrivendo…",
-            color = Theme.colorScheme.onSurfaceVariant,
+            "Sta scrivendoâ€¦",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp
         )
     }
@@ -462,7 +463,7 @@ private fun Composer(
                         .weight(1f)
                         .padding(horizontal = 8.dp, vertical = 10.dp),
                     textStyle = TextStyle(
-                        color = Theme.colorScheme.onSurface,
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 15.sp,
                         lineHeight = 21.sp
                     ),
@@ -474,8 +475,8 @@ private fun Composer(
                     decorationBox = { innerTextField ->
                         if (text.isBlank()) {
                             Text(
-                                "Messaggio…",
-                                color = Theme.colorScheme.onSurfaceVariant,
+                                "Messaggioâ€¦",
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 15.sp
                             )
                         }
@@ -491,13 +492,13 @@ private fun Composer(
                     Surface(
                         modifier = Modifier.size(40.dp),
                         shape = CircleShape,
-                        color = if (canSend) Theme.colorScheme.primary else Color(0xFF5A5A5A)
+                        color = if (canSend) MaterialTheme.colorScheme.primary else Color(0xFF5A5A5A)
                     ) {
                         IconButton(onClick = { if (canSend) onSend() }) {
                             Icon(
                                 Icons.Outlined.ArrowUpward,
                                 contentDescription = "Invia",
-                                tint = if (canSend) Theme.colorScheme.onPrimary else Color(0xFF9A9A9A)
+                                tint = if (canSend) MaterialTheme.colorScheme.onPrimary else Color(0xFF9A9A9A)
                             )
                         }
                     }
@@ -552,7 +553,7 @@ private fun SidebarContent(
 
         Text(
             "Cronologia",
-            color = Theme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(horizontal = 18.dp, vertical = 18.dp)
@@ -608,7 +609,7 @@ private fun SidebarContent(
                         if (session.email.isBlank()) "Accesso ospite" else session.email,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        color = Theme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp
                     )
                 }
@@ -633,7 +634,7 @@ private fun SidebarContent(
             Spacer(Modifier.weight(1f))
             Text(
                 "Owner @XfuckX0",
-                color = Theme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 11.sp
             )
             Spacer(Modifier.width(4.dp))
@@ -668,7 +669,7 @@ private fun ConversationRow(
         Icon(
             Icons.Outlined.ChatBubbleOutline,
             contentDescription = null,
-            tint = Theme.colorScheme.onSurfaceVariant,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(17.dp)
         )
         Spacer(Modifier.width(10.dp))
@@ -683,7 +684,7 @@ private fun ConversationRow(
             Icon(
                 Icons.Outlined.DeleteOutline,
                 contentDescription = "Elimina",
-                tint = Theme.colorScheme.onSurfaceVariant,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(17.dp)
             )
         }
@@ -747,15 +748,15 @@ private fun ProfileDialog(
                 Text("Nome: " + session.name.ifBlank { "Guest" })
                 Text(
                     if (session.email.isBlank()) {
-                        "Modalità: ospite"
+                        "ModalitÃ : ospite"
                     } else {
                         "Email: " + session.email
                     }
                 )
-                Text("Owner della mod: @XfuckX0", color = Theme.colorScheme.primary)
+                Text("Owner della mod: @XfuckX0", color = MaterialTheme.colorScheme.primary)
                 Text(
-                    "L'autenticazione è locale sul dispositivo.",
-                    color = Theme.colorScheme.onSurfaceVariant
+                    "L'autenticazione Ã¨ locale sul dispositivo.",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
@@ -774,3 +775,4 @@ private fun ProfileDialog(
         }
     )
 }
+
