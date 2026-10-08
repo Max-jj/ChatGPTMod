@@ -45,7 +45,7 @@ import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.DeleteOutline
-import androidx.compose.material.icons.outlined.About
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.MoreHoriz
@@ -446,7 +446,7 @@ private fun ErrorCard(error: String) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                Icons.Outlined.About,
+                Icons.Outlined.Info,
                 contentDescription = null,
                 tint = Color(0xFFFF8A80)
             )
@@ -660,7 +660,7 @@ private fun SidebarContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onAbout) {
-                Icon(Icons.Outlined.About, contentDescription = "About")
+                Icon(Icons.Outlined.Info, contentDescription = "About")
             }
             IconButton(onClick = onOwner) {
                 Image(
