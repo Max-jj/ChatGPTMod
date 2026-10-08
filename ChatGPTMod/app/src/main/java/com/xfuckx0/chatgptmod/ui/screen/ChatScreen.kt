@@ -211,13 +211,13 @@ fun ChatScreen(
 
 @Composable
 private fun ChatContent(uiState: ChatState, modifier: Modifier = Modifier) {
-    if (uiState.messages.isEmpty()) {
+    if (uiState.messages.isEmpty() && !uiState.isLoading && uiState.error == null) {
         EmptyChat(modifier)
     } else {
         LazyColumn(
             modifier = modifier,
             verticalArrangement = Arrangement.spacedBy(4.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 18.dp)
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 22.dp)
         ) {
             items(uiState.messages, key = { it.id }) { message ->
                 MessageRow(message)
@@ -278,7 +278,7 @@ private fun EmptyChat(modifier: Modifier) {
                     .fillMaxWidth()
                     .padding(vertical = 4.dp),
                 shape = RoundedCornerShape(18.dp),
-                color = Color(0xFF2A2A2A)
+                color = MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 15.dp),
@@ -305,7 +305,7 @@ private fun MessageRow(message: ChatMessage) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 9.dp, horizontal = 4.dp),
+            .padding(vertical = 12.dp, horizontal = 4.dp),
         verticalAlignment = Alignment.Top
     ) {
         Surface(
@@ -315,7 +315,7 @@ private fun MessageRow(message: ChatMessage) {
         ) {
             if (isUser) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text("U", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text("Tu", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             } else {
                 Image(
@@ -328,7 +328,7 @@ private fun MessageRow(message: ChatMessage) {
             }
         }
 
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(14.dp))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -444,7 +444,7 @@ private fun Composer(
     ) {
         Surface(
             shape = RoundedCornerShape(26.dp),
-            color = Color(0xFF2F2F2F)
+            color = MaterialTheme.colorScheme.surfaceVariant
         ) {
             Row(
                 modifier = Modifier
@@ -492,13 +492,13 @@ private fun Composer(
                     Surface(
                         modifier = Modifier.size(40.dp),
                         shape = CircleShape,
-                        color = if (canSend) MaterialTheme.colorScheme.primary else Color(0xFF5A5A5A)
+                        color = if (canSend) Color(0xFFFFFFFF) else Color(0xFF5A5A5A)
                     ) {
                         IconButton(onClick = { if (canSend) onSend() }) {
                             Icon(
                                 Icons.Outlined.ArrowUpward,
                                 contentDescription = "Invia",
-                                tint = if (canSend) MaterialTheme.colorScheme.onPrimary else Color(0xFF9A9A9A)
+                                tint = if (canSend) Color.Black else Color(0xFF9A9A9A)
                             )
                         }
                     }
