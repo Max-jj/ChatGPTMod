@@ -22,6 +22,7 @@ import com.xfuckx0.chatgptmod.data.Conversation
 import com.xfuckx0.chatgptmod.ui.viewmodel.ChatViewModel
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun ChatScreen(viewModel: ChatViewModel) {
     val uiState by viewModel.uiState.collectAsState()
     var showSidebar by remember { mutableStateOf(false) }
@@ -32,12 +33,12 @@ fun ChatScreen(viewModel: ChatViewModel) {
             TopAppBar(
                 title = { Text("ChatGPT Mod", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
-                    IconButton({ showSidebar = true }) {
+                    IconButton(onClick = { showSidebar = true }) {
                         Icon(painterResource(R.drawable.ic_menu), "Menu")
                     }
                 },
                 actions = {
-                    IconButton({ viewModel.createNewChat() }) {
+                    IconButton(onClick = { viewModel.createNewChat() }) {
                         Icon(painterResource(R.drawable.ic_add), "New chat")
                     }
                 }
@@ -167,7 +168,7 @@ private fun Sidebar(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("Chats", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    IconButton(onDismiss) {
+                    IconButton(onClick = onDismiss) {
                         Icon(painterResource(R.drawable.ic_close), "Close")
                     }
                 }
@@ -193,7 +194,7 @@ private fun Sidebar(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
-                            IconButton({ onDeleteClick(conversation.id) }) {
+                            IconButton(onClick = { onDeleteClick(conversation.id) }) {
                                 Icon(painterResource(R.drawable.ic_delete), "Delete")
                             }
                         }
