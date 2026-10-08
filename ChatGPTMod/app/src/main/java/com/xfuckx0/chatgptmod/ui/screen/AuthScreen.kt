@@ -104,7 +104,7 @@ fun AuthScreen(sessionStore: SessionStore) {
                         fontSize = 12.sp
                     )
                     Text(
-                        "Supporto e aggiornamenti su Telegram",
+                        "Support and updates on Telegram",
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold,
@@ -148,7 +148,7 @@ fun AuthScreen(sessionStore: SessionStore) {
                     Spacer(Modifier.height(20.dp))
 
                     Text(
-                        if (isSignUp) "Crea il tuo account" else "Bentornato",
+                        if (isSignUp) "Create your account" else "Welcome back",
                         color = MaterialTheme.colorScheme.onBackground,
                         fontSize = 29.sp,
                         fontWeight = FontWeight.Bold
@@ -156,9 +156,9 @@ fun AuthScreen(sessionStore: SessionStore) {
                     Spacer(Modifier.height(7.dp))
                     Text(
                         if (isSignUp) {
-                            "Personalizza la tua esperienza e mantieni le chat sul dispositivo."
+                            "Personalize your experience and keep chats on this device."
                         } else {
-                            "Accedi alla tua esperienza ChatGPT Mod."
+                            "Sign in to your local ChatGPT Mod account."
                         },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp,
@@ -186,7 +186,7 @@ fun AuthScreen(sessionStore: SessionStore) {
                                     .padding(4.dp)
                             ) {
                                 AuthModeButton(
-                                    text = "Accedi",
+                                    text = "Sign in",
                                     selected = !isSignUp,
                                     modifier = Modifier.weight(1f),
                                     onClick = {
@@ -195,7 +195,7 @@ fun AuthScreen(sessionStore: SessionStore) {
                                     }
                                 )
                                 AuthModeButton(
-                                    text = "Registrati",
+                                    text = "Sign up",
                                     selected = isSignUp,
                                     modifier = Modifier.weight(1f),
                                     onClick = {
@@ -211,7 +211,7 @@ fun AuthScreen(sessionStore: SessionStore) {
                                     onValueChange = { name = it; error = null },
                                     modifier = Modifier.fillMaxWidth(),
                                     singleLine = true,
-                                    label = { Text("Nome") },
+                                    label = { Text("Name") },
                                     leadingIcon = { Icon(Icons.Outlined.Person, null) },
                                     shape = RoundedCornerShape(15.dp)
                                 )
@@ -275,7 +275,7 @@ fun AuthScreen(sessionStore: SessionStore) {
                                 )
                             ) {
                                 Text(
-                                    if (loading) "Accessoâ€¦" else if (isSignUp) "Crea account" else "Accedi",
+                                    if (loading) "Signing in..." else if (isSignUp) "Create account" else "Sign in",
                                     fontWeight = FontWeight.Bold
                                 )
                             }
@@ -292,7 +292,7 @@ fun AuthScreen(sessionStore: SessionStore) {
                                     .height(52.dp),
                                 shape = RoundedCornerShape(16.dp)
                             ) {
-                                Text("Continua come ospite")
+                                Text("Continue as guest")
                             }
                         }
                     }
@@ -300,7 +300,7 @@ fun AuthScreen(sessionStore: SessionStore) {
                     Spacer(Modifier.height(16.dp))
 
                     Text(
-                        "Accesso locale â€¢ credenziali salvate sul dispositivo",
+                        "Local sign-in - credentials are stored on this device",
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                         fontSize = 10.sp,
                         textAlign = TextAlign.Center
