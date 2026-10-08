@@ -1,6 +1,7 @@
 package com.xfuckx0.chatgptmod.network
 
 import kotlinx.serialization.Serializable
+import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Headers
@@ -17,12 +18,12 @@ interface ApiService {
     @POST("chat/completions")
     fun chatCompletions(
         @Body request: ChatCompletionRequest
-    ): Response<okhttp3.ResponseBody>
+    ): Call<okhttp3.ResponseBody>
 
     @POST("chat/completions")
     fun chatCompletionsNonStream(
         @Body request: ChatCompletionRequest
-    ): Response<ChatCompletionResponse>
+    ): Call<ChatCompletionResponse>
 }
 
 @Serializable
