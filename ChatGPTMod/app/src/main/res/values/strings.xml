@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">ChatGPT Mod</string>
+    <string name="new_chat">New Chat</string>
+    <string name="send">Send</string>
+    <string name="message_placeholder">Message...</string>
+    <string name="chats">Chats</string>
+    <string name="delete">Delete</string>
+    <string name="close">Close</string>
+    <string name="get_started">Get Started</string>
+    <string name="created_by">Created by @XfuckX0</string>
+    <string name="powered_by">Powered by Nemotron-3-Ultra-Free via OpenCode AI</string>
+    <string name="no_subscriptions">No subscriptions • No limits • Fully free</string>
+    <string name="error_network">Network error. Please check your connection.</string>
+    <string name="error_api">API error. Please try again.</string>
+    <string name="error_unknown">Unknown error occurred.</string>
+</resources>
