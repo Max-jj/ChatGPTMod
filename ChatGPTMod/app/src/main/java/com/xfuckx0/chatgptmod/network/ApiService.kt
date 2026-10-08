@@ -1,6 +1,8 @@
 package com.xfuckx0.chatgptmod.network
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonPrimitive
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
@@ -28,7 +30,7 @@ interface ApiService {
 
 @Serializable
 data class ChatCompletionRequest(
-    val model: String = "nemotron-3-ultra-free",
+    val model: String = ApiConfig.freeModels.first(),
     val messages: List<Message>,
     val temperature: Float = 0.7f,
     val max_tokens: Int? = 4096,
@@ -41,9 +43,11 @@ data class ChatCompletionRequest(
 @Serializable
 data class Message(
     val role: String,
-    val content: String,
+    val content: JsonElement,
     val name: String? = null
-)
+) {
+    constructor(role: String, text: String) : this(role, JsonPrimitive(text))
+}
 
 @Serializable
 data class ChatCompletionResponse(
@@ -52,7 +56,7 @@ data class ChatCompletionResponse(
     val created: Long,
     val model: String,
     val choices: List<Choice>,
-    val usage: Usage?
+    val usage: Usage? = null
 )
 
 @Serializable
