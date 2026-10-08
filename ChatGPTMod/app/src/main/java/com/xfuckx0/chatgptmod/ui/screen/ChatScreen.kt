@@ -1,4 +1,4 @@
-package com.xfuckx0.chatgptmod.ui.screen
+﻿package com.xfuckx0.chatgptmod.ui.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -219,7 +219,7 @@ private fun CreatorPopup(onDismiss: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Icon(
-                    painterResource(R.drawable.ic_launcher_foreground),
+                    painterResource(R.drawable.gpt_logo),
                     contentDescription = null,
                     modifier = Modifier.size(72.dp)
                 )
