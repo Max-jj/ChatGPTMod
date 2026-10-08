@@ -28,7 +28,7 @@ interface ApiService {
 
 @Serializable
 data class ChatCompletionRequest(
-    val model: String = "nemotron-3-ultra-free",
+    val model: String = "mimo-v2.5-free",
     val messages: List<Message>,
     val temperature: Float = 0.7f,
     val max_tokens: Int? = 4096,
