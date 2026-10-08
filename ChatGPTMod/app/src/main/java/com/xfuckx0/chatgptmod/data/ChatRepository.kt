@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class ChatRepository(context: Context) {
@@ -47,9 +48,16 @@ class ChatRepository(context: Context) {
         }
     }
 
+    private var messagesJob: Job? = null
+
+    suspend fun getMessagesSnapshot(conversationId: Long): List<ChatMessage> =
+        dao.getMessagesSnapshot(conversationId)
+
     fun loadMessages(conversationId: Long) {
         _currentConversationId.value = conversationId
-        scope.launch {
+        messagesJob?.cancel()
+        _messages.value = emptyList()
+        messagesJob = scope.launch {
             dao.getMessagesForConversation(conversationId).collect {
                 _messages.value = it
             }
@@ -62,7 +70,9 @@ class ChatRepository(context: Context) {
             Conversation(title = "New Chat", createdAt = now, updatedAt = now)
         )
         _currentConversationId.value = id
+        messagesJob?.cancel()
         _messages.value = emptyList()
+        loadMessages(id)
         return id
     }
 
