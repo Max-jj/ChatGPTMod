@@ -43,7 +43,8 @@ class ChatViewModel(
                 }
                 repository.addUserMessage(text)
 
-                val messages = repository.messages.value.map {
+                val conversationId = repository.currentConversationId.value ?: error("Conversazione non disponibile")
+                val messages = repository.getMessagesSnapshot(conversationId).map {
                     Message(it.role, it.content)
                 }
 
