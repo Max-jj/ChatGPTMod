@@ -6,7 +6,6 @@ import retrofit2.http.Body
 import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Streaming
-import retrofit2.http.Url
 
 interface ApiService {
 
@@ -48,7 +47,7 @@ data class Message(
 @Serializable
 data class ChatCompletionResponse(
     val id: String,
-    val object: String,
+    val `object`: String,
     val created: Long,
     val model: String,
     val choices: List<Choice>,
@@ -69,11 +68,10 @@ data class Usage(
     val total_tokens: Int
 )
 
-// Streaming response chunks
 @Serializable
 data class ChatCompletionChunk(
     val id: String,
-    val object: String,
+    val `object`: String,
     val created: Long,
     val model: String,
     val choices: List<ChunkChoice>
