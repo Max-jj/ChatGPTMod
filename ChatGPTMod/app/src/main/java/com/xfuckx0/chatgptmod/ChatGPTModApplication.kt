@@ -14,6 +14,7 @@ class ChatGPTModApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        com.xfuckx0.chatgptmod.network.ApiConfig.initialize(this)
     }
 
     companion object {
