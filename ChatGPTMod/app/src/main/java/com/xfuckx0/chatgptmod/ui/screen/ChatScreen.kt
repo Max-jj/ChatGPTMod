@@ -302,69 +302,55 @@ private fun MessageRow(message: ChatMessage) {
     val isUser = message.role == "user"
     val clipboard: ClipboardManager = LocalClipboardManager.current
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp, horizontal = 4.dp),
-        verticalAlignment = Alignment.Top
-    ) {
-        Surface(
-            modifier = Modifier.size(34.dp),
-            shape = if (isUser) CircleShape else RoundedCornerShape(10.dp),
-            color = if (isUser) Color(0xFF5E5E5E) else Color(0xFF2F2F2F)
+    if (isUser) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+            horizontalArrangement = Arrangement.End
         ) {
-            if (isUser) {
-                Box(contentAlignment = Alignment.Center) {
-                    Text("Tu", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                }
-            } else {
-                Image(
-                    painter = painterResource(R.drawable.gpt_logo),
-                    contentDescription = "Assistant",
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(6.dp)
+            Surface(
+                modifier = Modifier.fillMaxWidth(0.84f),
+                shape = RoundedCornerShape(23.dp),
+                color = Color(0xFF343434)
+            ) {
+                Text(
+                    text = message.content,
+                    modifier = Modifier.padding(horizontal = 17.dp, vertical = 13.dp),
+                    fontSize = 15.sp,
+                    lineHeight = 23.sp,
+                    color = Color.White
                 )
             }
         }
-
-        Spacer(Modifier.width(14.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
+    } else {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 13.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(R.drawable.gpt_logo),
+                    contentDescription = null,
+                    modifier = Modifier.size(25.dp)
+                )
+                Spacer(Modifier.width(9.dp))
+                Text("ChatGPT", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            }
+            Spacer(Modifier.height(12.dp))
             Text(
-                if (isUser) "Tu" else "ChatGPT",
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                message.content,
+                text = message.content,
                 fontSize = 15.sp,
-                lineHeight = 22.sp
+                lineHeight = 24.sp,
+                modifier = Modifier.fillMaxWidth().padding(start = 2.dp)
             )
-
-            if (!isUser) {
-                Row(modifier = Modifier.padding(top = 4.dp)) {
-                    IconButton(
-                        onClick = { clipboard.setText(AnnotatedString(message.content)) },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            Icons.Outlined.ContentCopy,
-                            contentDescription = "Copia",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(17.dp)
-                        )
-                    }
-                    IconButton(onClick = {}, modifier = Modifier.size(32.dp)) {
-                        Icon(
-                            Icons.Outlined.MoreHoriz,
-                            contentDescription = "Altre opzioni",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
+            IconButton(
+                onClick = { clipboard.setText(AnnotatedString(message.content)) },
+                modifier = Modifier.size(33.dp)
+            ) {
+                Icon(
+                    Icons.Outlined.ContentCopy,
+                    contentDescription = "Copia risposta",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(17.dp)
+                )
             }
         }
     }
