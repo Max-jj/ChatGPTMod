@@ -1,29 +1,20 @@
 package com.xfuckx0.chatgptmod.data
 
 import android.content.Context
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.rxjava3.RxDataStore
-import androidx.datastore.preferences.rxjava3.RxPreferenceDataStoreBuilder
-import io.reactivex.rxjava3.core.Completable
-import io.reactivex.rxjava3.core.Flowable
-import io.reactivex.rxjava3.core.Single
-import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 
-class ChatRepository(private val context: Context) {
-
+class ChatRepository(context: Context) {
     private val database = ChatDatabase.getDatabase(context)
     private val dao = database.chatDao()
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    // Current state
     private val _conversations = MutableStateFlow<List<Conversation>>(emptyList())
     val conversations = _conversations.asStateFlow()
 
@@ -39,21 +30,17 @@ class ChatRepository(private val context: Context) {
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
 
-    // Combined state for UI
-    val uiState = combine(conversations, currentConversationId, messages, isLoading, error) { convs, currentId, msgs, loading, err ->
+    val uiState = combine(
+        conversations, currentConversationId, messages, isLoading, error
+    ) { convs, currentId, msgs, loading, err ->
         ChatState(convs, currentId, msgs, loading, err)
     }.distinctUntilChanged()
 
     init {
-        loadConversations()
-    }
-
-    private fun loadConversations() {
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             dao.getAllConversations().collect { list ->
                 _conversations.value = list
                 if (_currentConversationId.value == null && list.isNotEmpty()) {
-                    _currentConversationId.value = list.first().id
                     loadMessages(list.first().id)
                 }
             }
@@ -62,96 +49,61 @@ class ChatRepository(private val context: Context) {
 
     fun loadMessages(conversationId: Long) {
         _currentConversationId.value = conversationId
-        CoroutineScope(Dispatchers.IO).launch {
-            dao.getMessagesForConversation(conversationId).collect { list ->
-                _messages.value = list
+        scope.launch {
+            dao.getMessagesForConversation(conversationId).collect {
+                _messages.value = it
             }
         }
     }
 
-    fun createNewConversation(): Long {
-        val conversation = Conversation(
-            title = "New Chat",
-            createdAt = System.currentTimeMillis(),
-            updatedAt = System.currentTimeMillis()
+    suspend fun createNewConversation(): Long {
+        val now = System.currentTimeMillis()
+        val id = dao.insertConversation(
+            Conversation(title = "New Chat", createdAt = now, updatedAt = now)
         )
-        return CoroutineScope(Dispatchers.IO).launch {
-            val id = dao.insertConversation(conversation)
-            _currentConversationId.value = id
-            loadMessages(id)
-            id
-        }.join()
+        _currentConversationId.value = id
+        _messages.value = emptyList()
+        return id
     }
 
-    fun updateConversationTitle(conversationId: Long, title: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val conversation = dao.getConversationById(conversationId)?.copy(
-                title = title,
-                updatedAt = System.currentTimeMillis()
-            )
-            conversation?.let { dao.updateConversation(it) }
-        }
-    }
-
-    fun deleteConversation(conversationId: Long) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val conversation = dao.getConversationById(conversationId)
-            conversation?.let { dao.deleteConversation(it) }
-            dao.deleteMessagesForConversation(conversationId)
-            if (_currentConversationId.value == conversationId) {
-                val remaining = _conversations.value
-                _currentConversationId.value = remaining.firstOrNull()?.id
-                _currentConversationId.value?.let { loadMessages(it) }
-            }
-        }
-    }
-
-    fun addUserMessage(content: String): Long {
+    suspend fun addUserMessage(content: String): Long {
         val conversationId = _currentConversationId.value ?: createNewConversation()
-        val message = ChatMessage(
-            role = "user",
-            content = content,
-            conversationId = conversationId
+        val id = dao.insertMessage(
+            ChatMessage(role = "user", content = content, conversationId = conversationId)
         )
-        return CoroutineScope(Dispatchers.IO).launch {
-            val id = dao.insertMessage(message)
-            updateConversationTimestamp(conversationId)
-            id
-        }.join()
+        updateConversation(conversationId)
+        return id
     }
 
-    fun addAssistantMessage(content: String): Long {
+    suspend fun addAssistantMessage(content: String): Long {
         val conversationId = _currentConversationId.value ?: return -1
-        val message = ChatMessage(
-            role = "assistant",
-            content = content,
-            conversationId = conversationId
+        val id = dao.insertMessage(
+            ChatMessage(role = "assistant", content = content, conversationId = conversationId)
         )
-        return CoroutineScope(Dispatchers.IO).launch {
-            val id = dao.insertMessage(message)
-            updateConversationTimestamp(conversationId)
-            updateConversationMessageCount(conversationId)
-            id
-        }.join()
+        updateConversation(conversationId)
+        return id
     }
 
-    private fun updateConversationTimestamp(conversationId: Long) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val conversation = dao.getConversationById(conversationId)?.copy(
-                updatedAt = System.currentTimeMillis()
-            )
-            conversation?.let { dao.updateConversation(it) }
-        }
-    }
-
-    private fun updateConversationMessageCount(conversationId: Long) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val count = dao.getMessageCount(conversationId)
-            val conversation = dao.getConversationById(conversationId)?.copy(
+    private suspend fun updateConversation(conversationId: Long) {
+        val conversation = dao.getConversationById(conversationId) ?: return
+        val count = dao.getMessageCount(conversationId)
+        dao.updateConversation(
+            conversation.copy(
                 messageCount = count,
                 updatedAt = System.currentTimeMillis()
             )
-            conversation?.let { dao.updateConversation(it) }
+        )
+    }
+
+    suspend fun deleteConversation(conversationId: Long) {
+        dao.getConversationById(conversationId)?.let { dao.deleteConversation(it) }
+        dao.deleteMessagesForConversation(conversationId)
+        val remaining = dao.getAllConversationsSnapshot()
+        if (_currentConversationId.value == conversationId) {
+            val next = remaining.firstOrNull()
+            _currentConversationId.value = next?.id
+            _messages.value = emptyList()
+            next?.let { loadMessages(it.id) }
         }
     }
 
