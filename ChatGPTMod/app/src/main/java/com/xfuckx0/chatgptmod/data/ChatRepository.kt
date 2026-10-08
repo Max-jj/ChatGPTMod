@@ -85,8 +85,7 @@ class ChatRepository(context: Context) {
         return id
     }
 
-    suspend fun addAssistantMessage(content: String): Long {
-        val conversationId = _currentConversationId.value ?: return -1
+    suspend fun addAssistantMessage(content: String, conversationId: Long): Long {
         val id = dao.insertMessage(
             ChatMessage(role = "assistant", content = content, conversationId = conversationId)
         )
