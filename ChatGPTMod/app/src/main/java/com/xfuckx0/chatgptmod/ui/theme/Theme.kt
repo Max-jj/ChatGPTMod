@@ -29,7 +29,6 @@ private val DarkColorScheme = darkColorScheme(
     onError = Color(0xFF7F1D1D),
     outline = Color(0xFF374151),
     outlineVariant = Color(0xFF1F2937),
-    shadow = Color.Black,
     scrim = Color.Black,
     inverseSurface = Color(0xFFF9FAFB),
     inverseOnSurface = Color(0xFF111827),
