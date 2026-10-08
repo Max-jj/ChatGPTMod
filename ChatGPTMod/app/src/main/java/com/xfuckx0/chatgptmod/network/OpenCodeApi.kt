@@ -12,7 +12,7 @@ import java.io.IOException
 class OpenCodeApi(private val apiService: ApiService) {
 
     private val authToken = "oc_sk_cbfb16b00582_gNYTfgWtx-v-5ChvvTcB7JFPi8jTR6HX"
-    private val model = "nemotron-3-ultra-free"
+    private val model = "mimo-v2.5-free"
 
     private val authInterceptor = Interceptor { chain ->
         val original = chain.request()
@@ -120,6 +120,8 @@ class OpenCodeApi(private val apiService: ApiService) {
                         .build()
                     chain.proceed(authenticated)
                 })
+                .callTimeout(90, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(90, java.util.concurrent.TimeUnit.SECONDS)
                 .build()
         }
     }
