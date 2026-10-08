@@ -3,30 +3,24 @@ package com.xfuckx0.chatgptmod.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.xfuckx0.chatgptmod.data.ChatRepository
-import com.xfuckx0.chatgptmod.data.ChatState
+import com.xfuckx0.chatgptmod.network.Message
 import com.xfuckx0.chatgptmod.network.OpenCodeApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.schedulers.Schedulers
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-@HiltViewModel
-class ChatViewModel @Inject constructor(
+class ChatViewModel(
     private val repository: ChatRepository,
     private val openCodeApi: OpenCodeApi
 ) : ViewModel() {
 
     private val disposable = CompositeDisposable()
 
-    // UI State from repository
     val uiState = repository.uiState
 
-    // Input state
     private val _inputText = MutableStateFlow("")
     val inputText = _inputText.asStateFlow()
 
@@ -36,46 +30,59 @@ class ChatViewModel @Inject constructor(
 
     fun sendMessage() {
         val text = _inputText.value.trim()
-        if (text.isBlank()) return
+        if (text.isBlank() || repository.isLoading.value) return
 
         _inputText.value = ""
         repository.setLoading(true)
         repository.clearError()
 
-        val conversationId = repository.currentConversationId.value ?: repository.createNewConversation()
-        repository.addUserMessage(text)
+        viewModelScope.launch {
+            try {
+                if (repository.currentConversationId.value == null) {
+                    repository.createNewConversation()
+                }
+                repository.addUserMessage(text)
 
-        disposable.add(
-            openCodeApi.sendMessage(
-                repository.messages.value.map { msg ->
-                    com.xfuckx0.chatgptmod.network.Message(msg.role, msg.content)
-                } + com.xfuckx0.chatgptmod.network.Message("user", text)
-            )
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    { chunk ->
-                        // Handle streaming chunks - append to last assistant message or create new
-                        // For simplicity, we'll collect and add at the end
-                    },
-                    { error ->
-                        repository.setLoading(false)
-                        repository.setError(error.message ?: "Unknown error")
-                    },
-                    {
-                        // Stream completed - the last assistant message was added via chunks
-                        repository.setLoading(false)
-                    }
+                val messages = repository.messages.value.map {
+                    Message(it.role, it.content)
+                }
+
+                val response = StringBuilder()
+                disposable.add(
+                    openCodeApi.sendMessage(messages)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                            { chunk -> response.append(chunk) },
+                            { error ->
+                                repository.setLoading(false)
+                                repository.setError(error.message ?: "Unknown error")
+                            },
+                            {
+                                if (response.isNotEmpty()) {
+                                    viewModelScope.launch {
+                                        repository.addAssistantMessage(response.toString())
+                                        repository.setLoading(false)
+                                    }
+                                } else {
+                                    repository.setLoading(false)
+                                }
+                            }
+                        )
                 )
-        )
+            } catch (error: Exception) {
+                repository.setLoading(false)
+                repository.setError(error.message ?: "Unable to send message")
+            }
+        }
     }
 
     fun createNewChat() {
-        repository.createNewConversation()
+        viewModelScope.launch { repository.createNewConversation() }
     }
 
     fun deleteConversation(conversationId: Long) {
-        repository.deleteConversation(conversationId)
+        viewModelScope.launch { repository.deleteConversation(conversationId) }
     }
 
     fun selectConversation(conversationId: Long) {
@@ -83,7 +90,7 @@ class ChatViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        super.onCleared()
         disposable.clear()
+        super.onCleared()
     }
 }
