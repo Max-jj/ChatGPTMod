@@ -18,13 +18,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xfuckx0.chatgptmod.R
 import com.xfuckx0.chatgptmod.data.ChatMessage
+import com.xfuckx0.chatgptmod.data.ChatState
 import com.xfuckx0.chatgptmod.data.Conversation
 import com.xfuckx0.chatgptmod.ui.viewmodel.ChatViewModel
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun ChatScreen(viewModel: ChatViewModel) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState(initial = ChatState())
     var showSidebar by remember { mutableStateOf(false) }
     var showCreatorPopup by remember { mutableStateOf(true) }
 
