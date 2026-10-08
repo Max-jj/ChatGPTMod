@@ -38,7 +38,6 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.MoreHoriz
-import androidx.compose.material.icons.outlined.EditSquare
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -175,7 +174,7 @@ fun ChatScreen(
                             }
                         }
                         IconButton(onClick = viewModel::createNewChat) {
-                            Icon(Icons.Outlined.EditSquare, contentDescription = "Nuova chat")
+                            Icon(Icons.Outlined.Add, contentDescription = "Nuova chat")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
