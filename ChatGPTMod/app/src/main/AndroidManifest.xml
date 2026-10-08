@@ -12,7 +12,7 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/gpt_logo"
         android:label="@string/app_name"
-        android:roundIcon="@drawable/gpt_logo_round"
+        android:roundIcon="@drawable/gpt_logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.ChatGPTMod">
 
