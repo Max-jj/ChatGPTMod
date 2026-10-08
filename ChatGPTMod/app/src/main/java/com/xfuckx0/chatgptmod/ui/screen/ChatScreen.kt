@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -144,7 +146,7 @@ fun ChatScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                "Nemotron 3 Ultra â€¢ Free",
+                                "Nemotron 3 Ultra · Free",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -192,6 +194,7 @@ fun ChatScreen(
         ) { padding ->
             ChatContent(
                 uiState = uiState,
+                onSuggestion = { suggestion -> viewModel.setInputText(suggestion) },
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
@@ -210,11 +213,17 @@ fun ChatScreen(
 }
 
 @Composable
-private fun ChatContent(uiState: ChatState, modifier: Modifier = Modifier) {
+private fun ChatContent(uiState: ChatState, onSuggestion: (String) -> Unit, modifier: Modifier = Modifier) {
+    val listState = rememberLazyListState()
+    LaunchedEffect(uiState.messages.size, uiState.isLoading, uiState.error) {
+        val count = uiState.messages.size + (if (uiState.isLoading) 1 else 0) + (if (uiState.error != null) 1 else 0)
+        if (count > 0) listState.animateScrollToItem(count - 1)
+    }
     if (uiState.messages.isEmpty() && !uiState.isLoading && uiState.error == null) {
-        EmptyChat(modifier)
+        EmptyChat(onSuggestion, modifier)
     } else {
         LazyColumn(
+            state = listState,
             modifier = modifier,
             verticalArrangement = Arrangement.spacedBy(4.dp),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 22.dp)
@@ -229,7 +238,7 @@ private fun ChatContent(uiState: ChatState, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun EmptyChat(modifier: Modifier) {
+private fun EmptyChat(onSuggestion: (String) -> Unit, modifier: Modifier) {
     val suggestions = listOf(
         "Spiegami questo codice",
         "Scrivimi un'app Android",
@@ -243,7 +252,7 @@ private fun EmptyChat(modifier: Modifier) {
         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 26.dp)
     ) {
         item {
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(90.dp))
             Surface(
                 modifier = Modifier.size(76.dp),
                 shape = RoundedCornerShape(24.dp),
@@ -265,7 +274,7 @@ private fun EmptyChat(modifier: Modifier) {
             )
             Spacer(Modifier.height(7.dp))
             Text(
-                "Chiedimi qualsiasi cosa.",
+                "Inizia una conversazione",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 14.sp
             )
@@ -276,7 +285,8 @@ private fun EmptyChat(modifier: Modifier) {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp),
+                    .padding(vertical = 4.dp)
+                    .clickable { onSuggestion(suggestion) },
                 shape = RoundedCornerShape(18.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant
             ) {
@@ -377,7 +387,7 @@ private fun TypingRow() {
         }
         Spacer(Modifier.width(12.dp))
         Text(
-            "Sta scrivendoâ€¦",
+            "Sta scrivendo…",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp
         )
@@ -461,7 +471,7 @@ private fun Composer(
                     decorationBox = { innerTextField ->
                         if (text.isBlank()) {
                             Text(
-                                "Messaggioâ€¦",
+                                "Messaggio…",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 15.sp
                             )
