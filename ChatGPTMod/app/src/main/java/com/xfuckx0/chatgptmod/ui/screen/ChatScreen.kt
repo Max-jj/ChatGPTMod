@@ -1,168 +1,112 @@
 package com.xfuckx0.chatgptmod.ui.screen
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsStateWithLifecycle
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.dp
 import com.xfuckx0.chatgptmod.R
-import com.xfuckx0.chatgptmod.ui.theme.Theme
+import com.xfuckx0.chatgptmod.data.ChatMessage
+import com.xfuckx0.chatgptmod.data.Conversation
 import com.xfuckx0.chatgptmod.ui.viewmodel.ChatViewModel
-import kotlinx.coroutines.launch
 
 @Composable
 fun ChatScreen(viewModel: ChatViewModel) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val showSidebar by remember { mutableStateOf(false) }
-    val showCreatorPopup by remember { mutableStateOf(true) } // Show on first launch
+    val uiState by viewModel.uiState.collectAsState()
+    var showSidebar by remember { mutableStateOf(false) }
+    var showCreatorPopup by remember { mutableStateOf(true) }
 
-    // Show creator popup on first launch
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        if (showCreatorPopup) {
-            // Popup will be shown via state
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Main content
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
-        ) {
-            // Top App Bar
+    Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize()) {
             TopAppBar(
                 title = { Text("ChatGPT Mod", fontWeight = FontWeight.Bold) },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Theme.colorScheme.surfaceContainer,
-                    titleContentColor = Theme.colorScheme.onSurface
-                ),
                 navigationIcon = {
-                    IconButton(onClick = { showSidebar = true }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_menu),
-                            contentDescription = "Menu",
-                            tint = Theme.colorScheme.onSurface
-                        )
+                    IconButton({ showSidebar = true }) {
+                        Icon(painterResource(R.drawable.ic_menu), "Menu")
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.createNewChat() }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_add),
-                            contentDescription = "New Chat",
-                            tint = Theme.colorScheme.onSurface
-                        )
+                    IconButton({ viewModel.createNewChat() }) {
+                        Icon(painterResource(R.drawable.ic_add), "New chat")
                     }
                 }
             )
 
-            // Messages area
-            androidx.compose.foundation.lazy.LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                reverseLayout = true,
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp)
+            LazyColumn(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                reverseLayout = false,
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(uiState.messages.reversed()) { message ->
-                    MessageBubble(message = message)
-                }
+                items(uiState.messages) { message -> MessageBubble(message) }
                 if (uiState.isLoading) {
                     item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = Theme.colorScheme.primary
-                            )
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+                            CircularProgressIndicator(Modifier.size(24.dp))
                         }
+                    }
+                }
+                uiState.error?.let { error ->
+                    item {
+                        Text(
+                            error,
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
             }
 
-            // Input area
-            MessageInput(viewModel = viewModel)
+            MessageInput(viewModel)
         }
 
-        // Sidebar
         if (showSidebar) {
             Sidebar(
                 conversations = uiState.conversations,
                 currentConversationId = uiState.currentConversationId,
-                onConversationClick = { id ->
-                    viewModel.selectConversation(id)
-                    showSidebar = false
-                },
-                onNewChatClick = {
-                    viewModel.createNewChat()
-                    showSidebar = false
-                },
-                onDeleteClick = { id ->
-                    viewModel.deleteConversation(id)
-                },
+                onConversationClick = { viewModel.selectConversation(it); showSidebar = false },
+                onNewChatClick = { viewModel.createNewChat(); showSidebar = false },
+                onDeleteClick = viewModel::deleteConversation,
                 onDismiss = { showSidebar = false }
             )
         }
 
-        // Creator Popup
         if (showCreatorPopup) {
-            CreatorPopup(onDismiss = { showCreatorPopup = false })
+            CreatorPopup { showCreatorPopup = false }
         }
     }
 }
 
 @Composable
-fun MessageBubble(message: com.xfuckx0.chatgptmod.data.ChatMessage) {
+private fun MessageBubble(message: ChatMessage) {
     val isUser = message.role == "user"
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        Modifier.fillMaxWidth(),
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
     ) {
         Card(
-            modifier = Modifier
-                .fillMaxWidth(0.85f)
-                .padding(horizontal = 8.dp),
-            colors = androidx.compose.material3.CardDefaults.cardColors(
-                containerColor = if (isUser) Theme.colorScheme.primary else Theme.colorScheme.surfaceVariant
+            modifier = Modifier.fillMaxWidth(0.85f),
+            colors = CardDefaults.cardColors(
+                containerColor = if (isUser) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.surfaceVariant
             )
         ) {
             Text(
-                text = message.content,
-                modifier = Modifier.padding(16.dp),
-                color = if (isUser) Theme.colorScheme.onPrimary else Theme.colorScheme.onSurfaceVariant,
+                message.content,
+                Modifier.padding(16.dp),
+                color = if (isUser) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 16.sp
             )
         }
@@ -170,52 +114,39 @@ fun MessageBubble(message: com.xfuckx0.chatgptmod.data.ChatMessage) {
 }
 
 @Composable
-fun MessageInput(viewModel: ChatViewModel) {
+private fun MessageInput(viewModel: ChatViewModel) {
     var text by remember { mutableStateOf("") }
-    val uiState = viewModel.uiState.value
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .background(Theme.colorScheme.surfaceContainer),
+        Modifier.fillMaxWidth().padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        androidx.compose.material3.TextField(
+        TextField(
             value = text,
-            onValueChange = { text = it; viewModel.setInputText(it) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(end = 12.dp),
-            placeholder = { Text("Message...", color = Theme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)) },
-            singleLine = true,
-            colors = androidx.compose.material3.TextFieldDefaults.textFieldColors(
-                containerColor = Theme.colorScheme.surface,
-                focusedContainerColor = Theme.colorScheme.surface,
-                unfocusedContainerColor = Theme.colorScheme.surface
-            )
+            onValueChange = {
+                text = it
+                viewModel.setInputText(it)
+            },
+            modifier = Modifier.weight(1f),
+            placeholder = { Text("Message...") },
+            singleLine = true
         )
+        Spacer(Modifier.width(8.dp))
         Button(
-            onClick = { viewModel.sendMessage() },
-            enabled = text.isNotBlank() && !uiState.isLoading,
-            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                containerColor = Theme.colorScheme.primary,
-                disabledContainerColor = Theme.colorScheme.primary.copy(alpha = 0.4f)
-            )
+            onClick = {
+                viewModel.sendMessage()
+                text = ""
+            },
+            enabled = text.isNotBlank()
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_send),
-                contentDescription = "Send",
-                tint = Theme.colorScheme.onPrimary
-            )
+            Icon(painterResource(R.drawable.ic_send), "Send")
         }
     }
 }
 
 @Composable
-fun Sidebar(
-    conversations: List<com.xfuckx0.chatgptmod.data.Conversation>,
+private fun Sidebar(
+    conversations: List<Conversation>,
     currentConversationId: Long?,
     onConversationClick: (Long) -> Unit,
     onNewChatClick: () -> Unit,
@@ -223,72 +154,47 @@ fun Sidebar(
     onDismiss: () -> Unit
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.3f))
-            .fillMaxWidth(),
-        contentAlignment = Alignment.CenterStart
+        Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.45f)).clickable { onDismiss() }
     ) {
         Card(
-            modifier = Modifier
-                .width(280.dp)
-                .fillMaxHeight()
-                .padding(16.dp),
-            elevation = 8.dp
+            Modifier.width(300.dp).fillMaxHeight().padding(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
+            Column(Modifier.fillMaxSize().padding(16.dp)) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Chats", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Theme.colorScheme.onSurface)
-                    IconButton(onClick = onDismiss) {
-                        Icon(painterResource(id = R.drawable.ic_close), contentDescription = "Close", tint = Theme.colorScheme.onSurface)
+                    Text("Chats", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    IconButton(onDismiss) {
+                        Icon(painterResource(R.drawable.ic_close), "Close")
                     }
                 }
 
-                androidx.compose.material3.Button(
-                    onClick = onNewChatClick,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Theme.colorScheme.primaryContainer
-                    )
-                ) {
-                    Text("+ New Chat", color = Theme.colorScheme.onPrimaryContainer)
+                Button(onClick = onNewChatClick, Modifier.fillMaxWidth()) {
+                    Text("New Chat")
                 }
 
-                androidx.compose.foundation.lazy.LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                LazyColumn(
+                    Modifier.fillMaxWidth().weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(conversations) { conversation ->
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp)
-                                .background(
-                                    color = if (conversation.id == currentConversationId) Theme.colorScheme.primaryContainer else Theme.colorScheme.surface,
-                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
-                                )
-                                .clickable { onConversationClick(conversation.id) },
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            Modifier.fillMaxWidth().clickable {
+                                onConversationClick(conversation.id)
+                            }.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = conversation.title,
+                                conversation.title,
+                                Modifier.weight(1f),
                                 maxLines = 1,
-                                overflow = androidx.compose.ui.text.TextOverflow.Ellipsis,
-                                color = if (conversation.id == currentConversationId) Theme.colorScheme.onPrimaryContainer else Theme.colorScheme.onSurface,
-                                fontWeight = if (conversation.id == currentConversationId) FontWeight.Bold else FontWeight.Normal
+                                overflow = TextOverflow.Ellipsis
                             )
-                            IconButton(onClick = { onDeleteClick(conversation.id) }) {
-                                Icon(painterResource(id = R.drawable.ic_delete), contentDescription = "Delete", tint = Theme.colorScheme.onSurfaceVariant)
+                            IconButton({ onDeleteClick(conversation.id) }) {
+                                Icon(painterResource(R.drawable.ic_delete), "Delete")
                             }
                         }
                     }
@@ -299,71 +205,30 @@ fun Sidebar(
 }
 
 @Composable
-fun CreatorPopup(onDismiss: () -> Unit) {
+private fun CreatorPopup(onDismiss: () -> Unit) {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.5f))
-            .fillMaxWidth(),
+        Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f)),
         contentAlignment = Alignment.Center
     ) {
-        Card(
-            modifier = Modifier
-                .width(320.dp)
-                .padding(24.dp),
-            elevation = 16.dp
-        ) {
+        Card(Modifier.width(320.dp).padding(24.dp)) {
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth().padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // Logo/Icon
-                androidx.compose.foundation.Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentDescription = "ChatGPT Mod",
-                    modifier = Modifier.size(80.dp),
-                    contentScale = ContentScale.Fit
+                Icon(
+                    painterResource(R.drawable.ic_launcher_foreground),
+                    contentDescription = null,
+                    modifier = Modifier.size(72.dp)
                 )
-
+                Text("ChatGPT Mod", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                Text("Created by @XfuckX0", color = MaterialTheme.colorScheme.primary)
                 Text(
-                    "ChatGPT Mod",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Theme.colorScheme.onSurface
+                    "Powered by Nemotron-3-Ultra-Free via OpenCode AI",
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
-
-                Text(
-                    "Created by @XfuckX0",
-                    fontSize = 16.sp,
-                    color = Theme.colorScheme.primary,
-                    fontWeight = FontWeight.Medium
-                )
-
-                Text(
-                    "Powered by Nemotron-3-Ultra-Free\nvia OpenCode AI",
-                    fontSize = 14.sp,
-                    color = Theme.colorScheme.onSurfaceVariant,
-                    textAlign = androidx.compose.ui.text.TextAlign.Center
-                )
-
-                androidx.compose.material3.Divider(modifier = Modifier.fillMaxWidth())
-
-                Text(
-                    "No subscriptions • No limits • Fully free",
-                    fontSize = 13.sp,
-                    color = Theme.colorScheme.onSurfaceVariant,
-                    textAlign = androidx.compose.ui.text.TextAlign.Center
-                )
-
-                androidx.compose.material3.Button(
-                    onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                        containerColor = Theme.colorScheme.primary
-                    )
-                ) {
-                    Text("Get Started", color = Theme.colorScheme.onPrimary)
+                Button(onClick = onDismiss, Modifier.fillMaxWidth()) {
+                    Text("Get Started")
                 }
             }
         }
