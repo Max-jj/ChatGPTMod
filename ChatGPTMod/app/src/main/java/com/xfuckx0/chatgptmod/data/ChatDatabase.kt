@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import java.util.Date
 
 @Database(entities = [Conversation::class, ChatMessage::class], version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
