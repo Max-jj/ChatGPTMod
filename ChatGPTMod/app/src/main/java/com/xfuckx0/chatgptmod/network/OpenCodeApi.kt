@@ -1,5 +1,6 @@
 package com.xfuckx0.chatgptmod.network
 
+import io.reactivex.rxjava3.core.BackpressureStrategy
 import io.reactivex.rxjava3.core.Flowable
 import io.reactivex.rxjava3.core.Single
 import okhttp3.Interceptor
@@ -78,7 +79,7 @@ class OpenCodeApi(private val apiService: ApiService) {
                     emitter.onError(t)
                 }
             })
-        }, Flowable.BackpressureStrategy.BUFFER)
+        }, BackpressureStrategy.BUFFER)
     }
 
     fun sendMessageNonStream(messages: List<Message>): Single<String> {
