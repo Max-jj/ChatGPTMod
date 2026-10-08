@@ -51,12 +51,12 @@ class SessionStore(private val context: Context) {
         val cleanName = name.trim()
         val cleanEmail = email.trim().lowercase()
 
-        if (cleanName.length < 2) return AuthResult.Error("Inserisci un nome valido.")
+        if (cleanName.length < 2) return AuthResult.Error("Enter a valid name.")
         if (!Patterns.EMAIL_ADDRESS.matcher(cleanEmail).matches()) {
-            return AuthResult.Error("Inserisci un indirizzo email valido.")
+            return AuthResult.Error("Enter a valid email address.")
         }
         if (password.length < 6) {
-            return AuthResult.Error("La password deve avere almeno 6 caratteri.")
+            return AuthResult.Error("Password must be at least 6 characters.")
         }
 
         context.sessionDataStore.edit { prefs ->
@@ -74,7 +74,7 @@ class SessionStore(private val context: Context) {
     suspend fun login(email: String, password: String): AuthResult {
         val cleanEmail = email.trim().lowercase()
         if (!Patterns.EMAIL_ADDRESS.matcher(cleanEmail).matches()) {
-            return AuthResult.Error("Email non valida.")
+            return AuthResult.Error("Invalid email address.")
         }
 
         var valid = false
@@ -94,7 +94,7 @@ class SessionStore(private val context: Context) {
         }
 
         return if (valid) AuthResult.Success
-        else AuthResult.Error("Email o password non corrette.")
+        else AuthResult.Error("Incorrect email or password.")
     }
 
     suspend fun continueAsGuest() {
