@@ -1,5 +1,16 @@
 ﻿package com.xfuckx0.chatgptmod.ui.screen
 
+import android.app.Activity
+import android.speech.RecognizerIntent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.xfuckx0.chatgptmod.network.ApiConfig
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -34,7 +45,7 @@ import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.DeleteOutline
-import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.About
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.MoreHoriz
@@ -101,6 +112,17 @@ fun ChatScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var showAbout by remember { mutableStateOf(false) }
+    var showSettings by remember { mutableStateOf(ApiConfig.apiKey.isBlank()) }
+    val attachment by viewModel.attachment.collectAsStateWithLifecycle()
+    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) viewModel.attach(context, uri)
+    }
+    val speechPicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val recognized = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
+            if (!recognized.isNullOrBlank()) viewModel.setInputText(recognized)
+        }
+    }
     var showProfile by remember { mutableStateOf(false) }
 
     ModalNavigationDrawer(
@@ -146,7 +168,7 @@ fun ChatScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                "MiMo V2.5 · Free",
+                                if (ApiConfig.apiKey.isBlank()) "Set up API key" else ApiConfig.model + " · Free",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -158,6 +180,9 @@ fun ChatScreen(
                         }
                     },
                     actions = {
+                        IconButton(onClick = { showSettings = true }) {
+                            Icon(Icons.Outlined.Tune, contentDescription = "Settings")
+                        }
                         IconButton(onClick = { showProfile = true }) {
                             Surface(
                                 modifier = Modifier.size(34.dp),
@@ -174,7 +199,7 @@ fun ChatScreen(
                             }
                         }
                         IconButton(onClick = viewModel::createNewChat) {
-                            Icon(Icons.Outlined.Add, contentDescription = "Nuova chat")
+                            Icon(Icons.Outlined.Add, contentDescription = "New chat")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -188,7 +213,19 @@ fun ChatScreen(
                     text = inputText,
                     onTextChange = viewModel::setInputText,
                     onSend = viewModel::sendMessage,
-                    loading = uiState.isLoading
+                    loading = uiState.isLoading,
+                    attachmentName = attachment?.name,
+                    onRemoveAttachment = viewModel::removeAttachment,
+                    onAttach = { filePicker.launch("*/*") },
+                    onVoice = {
+                        try {
+                            speechPicker.launch(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                                .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US"))
+                        } catch (_: Exception) {
+                            Toast.makeText(context, "Speech recognition is not available on this device.", Toast.LENGTH_LONG).show()
+                        }
+                    }
                 )
             }
         ) { padding ->
@@ -203,6 +240,7 @@ fun ChatScreen(
     }
 
     if (showAbout) AboutDialog(onDismiss = { showAbout = false })
+    if (showSettings) SettingsDialog(onDismiss = { showSettings = false })
     if (showProfile) {
         ProfileDialog(
             session = session,
@@ -240,10 +278,10 @@ private fun ChatContent(uiState: ChatState, onSuggestion: (String) -> Unit, modi
 @Composable
 private fun EmptyChat(onSuggestion: (String) -> Unit, modifier: Modifier) {
     val suggestions = listOf(
-        "Spiegami questo codice",
-        "Scrivimi un'app Android",
-        "Crea un piano per un progetto",
-        "Analizza questo problema"
+        "Explain this code",
+        "Build an Android app",
+        "Plan a project",
+        "Help me solve a problem"
     )
 
     LazyColumn(
@@ -268,13 +306,13 @@ private fun EmptyChat(onSuggestion: (String) -> Unit, modifier: Modifier) {
             }
             Spacer(Modifier.height(18.dp))
             Text(
-                "Come posso aiutarti?",
+                "What can I help with?",
                 fontSize = 27.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(7.dp))
             Text(
-                "Inizia una conversazione",
+                "Ask anything to get started",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 14.sp
             )
@@ -357,7 +395,7 @@ private fun MessageRow(message: ChatMessage) {
             ) {
                 Icon(
                     Icons.Outlined.ContentCopy,
-                    contentDescription = "Copia risposta",
+                    contentDescription = "Copy response",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(17.dp)
                 )
@@ -387,7 +425,7 @@ private fun TypingRow() {
         }
         Spacer(Modifier.width(12.dp))
         Text(
-            "Sta scrivendo…",
+            "Thinking…",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 14.sp
         )
@@ -408,7 +446,7 @@ private fun ErrorCard(error: String) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                Icons.Outlined.Info,
+                Icons.Outlined.About,
                 contentDescription = null,
                 tint = Color(0xFFFF8A80)
             )
@@ -427,75 +465,79 @@ private fun Composer(
     text: String,
     onTextChange: (String) -> Unit,
     onSend: () -> Unit,
-    loading: Boolean
+    loading: Boolean,
+    attachmentName: String?,
+    onRemoveAttachment: () -> Unit,
+    onAttach: () -> Unit,
+    onVoice: () -> Unit
 ) {
-    val canSend = text.isNotBlank() && !loading
+    val canSend = (text.isNotBlank() || attachmentName != null) && !loading
 
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
+        modifier = Modifier.fillMaxWidth().navigationBarsPadding()
             .padding(horizontal = 10.dp, vertical = 8.dp),
         color = Color.Transparent
     ) {
-        Surface(
-            shape = RoundedCornerShape(26.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 6.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
-                verticalAlignment = Alignment.Bottom
-            ) {
-                IconButton(onClick = {}, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.Outlined.Add, contentDescription = "Allega")
-                }
-
-                BasicTextField(
-                    value = text,
-                    onValueChange = onTextChange,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 8.dp, vertical = 10.dp),
-                    textStyle = TextStyle(
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 15.sp,
-                        lineHeight = 21.sp
-                    ),
-                    singleLine = false,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                    keyboardActions = KeyboardActions(onSend = {
-                        if (canSend) onSend()
-                    }),
-                    decorationBox = { innerTextField ->
-                        if (text.isBlank()) {
-                            Text(
-                                "Messaggio…",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontSize = 15.sp
-                            )
-                        }
-                        innerTextField()
-                    }
-                )
-
-                if (text.isBlank()) {
-                    IconButton(onClick = {}, modifier = Modifier.size(40.dp)) {
-                        Icon(Icons.Outlined.Mic, contentDescription = "Voce")
-                    }
-                } else {
-                    Surface(
-                        modifier = Modifier.size(40.dp),
-                        shape = CircleShape,
-                        color = if (canSend) Color(0xFFFFFFFF) else Color(0xFF5A5A5A)
+        Surface(shape = RoundedCornerShape(26.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
+            Column {
+                if (attachmentName != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, top = 9.dp, end = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = { if (canSend) onSend() }) {
-                            Icon(
-                                Icons.Outlined.ArrowUpward,
-                                contentDescription = "Invia",
-                                tint = if (canSend) Color.Black else Color(0xFF9A9A9A)
-                            )
+                        Text(
+                            attachmentName,
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 13.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        IconButton(onClick = onRemoveAttachment, modifier = Modifier.size(32.dp)) {
+                            Icon(Icons.Outlined.DeleteOutline, contentDescription = "Remove attachment", modifier = Modifier.size(17.dp))
+                        }
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 5.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    IconButton(onClick = onAttach, modifier = Modifier.size(40.dp)) {
+                        Icon(Icons.Outlined.Add, contentDescription = "Attach an image or document")
+                    }
+                    BasicTextField(
+                        value = text,
+                        onValueChange = onTextChange,
+                        modifier = Modifier.weight(1f).padding(horizontal = 8.dp, vertical = 10.dp),
+                        textStyle = TextStyle(color = MaterialTheme.colorScheme.onSurface, fontSize = 15.sp, lineHeight = 21.sp),
+                        singleLine = false,
+                        maxLines = 7,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                        keyboardActions = KeyboardActions(onSend = { if (canSend) onSend() }),
+                        decorationBox = { inner ->
+                            Box {
+                                if (text.isEmpty()) Text("Message", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 15.sp)
+                                inner()
+                            }
+                        }
+                    )
+                    if (!canSend && text.isBlank()) {
+                        IconButton(onClick = onVoice, modifier = Modifier.size(40.dp)) {
+                            Icon(Icons.Outlined.Mic, contentDescription = "Dictate message")
+                        }
+                    } else {
+                        Surface(
+                            modifier = Modifier.size(40.dp),
+                            shape = CircleShape,
+                            color = if (canSend) Color.White else Color(0xFF555555)
+                        ) {
+                            IconButton(onClick = { if (canSend) onSend() }, enabled = canSend) {
+                                Icon(
+                                    Icons.Outlined.ArrowUpward,
+                                    contentDescription = "Send",
+                                    tint = if (canSend) Color.Black else Color.LightGray
+                                )
+                            }
                         }
                     }
                 }
@@ -544,11 +586,11 @@ private fun SidebarContent(
         ) {
             Icon(Icons.Outlined.Add, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("Nuova chat", fontWeight = FontWeight.SemiBold)
+            Text("New chat", fontWeight = FontWeight.SemiBold)
         }
 
         Text(
-            "Cronologia",
+            "Recent chats",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold,
@@ -602,14 +644,14 @@ private fun SidebarContent(
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        if (session.email.isBlank()) "Accesso ospite" else session.email,
+                        if (session.email.isBlank()) "Guest mode" else session.email,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 11.sp
                     )
                 }
-                Icon(Icons.Outlined.Tune, contentDescription = "Profilo")
+                Icon(Icons.Outlined.Tune, contentDescription = "Profile")
             }
         }
 
@@ -618,12 +660,12 @@ private fun SidebarContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onAbout) {
-                Icon(Icons.Outlined.Info, contentDescription = "Info")
+                Icon(Icons.Outlined.About, contentDescription = "About")
             }
             IconButton(onClick = onOwner) {
                 Image(
                     painter = painterResource(R.drawable.gpt_logo),
-                    contentDescription = "Owner Telegram",
+                    contentDescription = "Telegram",
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -635,7 +677,7 @@ private fun SidebarContent(
             )
             Spacer(Modifier.width(4.dp))
             IconButton(onClick = onLogout) {
-                Icon(Icons.Outlined.Tune, contentDescription = "Esci")
+                Icon(Icons.Outlined.Tune, contentDescription = "Sign out")
             }
         }
 
@@ -679,7 +721,7 @@ private fun ConversationRow(
         IconButton(onClick = onDelete, modifier = Modifier.size(34.dp)) {
             Icon(
                 Icons.Outlined.DeleteOutline,
-                contentDescription = "Elimina",
+                contentDescription = "Delete",
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(17.dp)
             )
@@ -704,10 +746,10 @@ private fun AboutDialog(onDismiss: () -> Unit) {
         title = { Text("ChatGPT Mod") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                Text("UI dark avanzata, cronologia locale e accesso ospite.")
-                Text("Modello: MiMo V2.5 Free")
+                Text("Dark interface, local chat history and guest access.")
+                Text("Models: OpenCode Zen free")
                 Text("Owner: @XfuckX0")
-                Text("Supporto e aggiornamenti su Telegram.")
+                Text("Support and updates on Telegram.")
             }
         },
         confirmButton = {
@@ -723,7 +765,7 @@ private fun AboutDialog(onDismiss: () -> Unit) {
         },
         dismissButton = {
             OutlinedButton(onClick = onDismiss) {
-                Text("Chiudi")
+                Text("Close")
             }
         }
     )
@@ -738,10 +780,10 @@ private fun ProfileDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF202020),
-        title = { Text("Profilo") },
+        title = { Text("Profile") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                Text("Nome: " + session.name.ifBlank { "Guest" })
+                Text("Name: " + session.name.ifBlank { "Guest" })
                 Text(
                     if (session.email.isBlank()) {
                         "ModalitÃ : ospite"
@@ -749,9 +791,9 @@ private fun ProfileDialog(
                         "Email: " + session.email
                     }
                 )
-                Text("Owner della mod: @XfuckX0", color = MaterialTheme.colorScheme.primary)
+                Text("App author: @XfuckX0", color = MaterialTheme.colorScheme.primary)
                 Text(
-                    "L'autenticazione Ã¨ locale sul dispositivo.",
+                    "Authentication is local to your device.",
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -761,14 +803,60 @@ private fun ProfileDialog(
                 onClick = onLogout,
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB3261E))
             ) {
-                Text("Esci")
+                Text("Sign out")
             }
         },
         dismissButton = {
             OutlinedButton(onClick = onDismiss) {
-                Text("Chiudi")
+                Text("Close")
             }
         }
     )
 }
 
+
+@Composable
+private fun SettingsDialog(onDismiss: () -> Unit) {
+    var key by remember { mutableStateOf(ApiConfig.apiKey) }
+    var model by remember { mutableStateOf(ApiConfig.model) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = Color(0xFF242424),
+        title = { Text("AI settings") },
+        text = {
+            Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                Text("Connect your own OpenCode Zen account to chat. Free models require an API key and model access.", fontSize = 13.sp)
+                Spacer(Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = key,
+                    onValueChange = { key = it },
+                    label = { Text("OpenCode Zen API key") },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(16.dp))
+                Text("Free model", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                ApiConfig.freeModels.forEach { candidate ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable { model = candidate }.padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(selected = model == candidate, onClick = { model = candidate })
+                        Text(candidate, fontSize = 12.sp)
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Text("Keys are stored locally on this device. This is an unofficial app; it is not connected to your ChatGPT account.", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                ApiConfig.apiKey = key
+                ApiConfig.model = model
+                onDismiss()
+            }) { Text("Save") }
+        },
+        dismissButton = { OutlinedButton(onClick = onDismiss) { Text("Cancel") } }
+    )
+}
