@@ -786,7 +786,7 @@ private fun ProfileDialog(
                 Text("Name: " + session.name.ifBlank { "Guest" })
                 Text(
                     if (session.email.isBlank()) {
-                        "ModalitÃ : ospite"
+                        "Mode: guest"
                     } else {
                         "Email: " + session.email
                     }
