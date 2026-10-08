@@ -51,6 +51,7 @@ class ChatViewModel(
                 val response = StringBuilder()
                 disposable.add(
                     openCodeApi.sendMessage(messages)
+                        .switchIfEmpty(openCodeApi.sendMessageNonStream(messages).toFlowable())
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(
@@ -62,10 +63,11 @@ class ChatViewModel(
                             {
                                 if (response.isNotEmpty()) {
                                     viewModelScope.launch {
-                                        repository.addAssistantMessage(response.toString())
+                                        repository.addAssistantMessage(response.toString(), conversationId)
                                         repository.setLoading(false)
                                     }
                                 } else {
+                                    repository.setError("Il servizio non ha restituito una risposta. Riprova.")
                                     repository.setLoading(false)
                                 }
                             }
