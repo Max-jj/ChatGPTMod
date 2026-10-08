@@ -38,6 +38,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.MoreHoriz
+import androidx.compose.material.icons.outlined.EditSquare
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -146,7 +147,7 @@ fun ChatScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                "Nemotron 3 Ultra · Free",
+                                "MiMo V2.5 · Free",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -174,7 +175,7 @@ fun ChatScreen(
                             }
                         }
                         IconButton(onClick = viewModel::createNewChat) {
-                            Icon(Icons.Outlined.Add, contentDescription = "Nuova chat")
+                            Icon(Icons.Outlined.EditSquare, contentDescription = "Nuova chat")
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -256,7 +257,7 @@ private fun EmptyChat(onSuggestion: (String) -> Unit, modifier: Modifier) {
             Surface(
                 modifier = Modifier.size(76.dp),
                 shape = RoundedCornerShape(24.dp),
-                color = Color(0xFF2F2F2F)
+                color = Color(0xFF303030)
             ) {
                 Image(
                     painter = painterResource(R.drawable.gpt_logo),
@@ -269,7 +270,7 @@ private fun EmptyChat(onSuggestion: (String) -> Unit, modifier: Modifier) {
             Spacer(Modifier.height(18.dp))
             Text(
                 "Come posso aiutarti?",
-                fontSize = 29.sp,
+                fontSize = 27.sp,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(7.dp))
@@ -529,7 +530,7 @@ private fun SidebarContent(
                 modifier = Modifier.size(28.dp)
             )
             Spacer(Modifier.width(10.dp))
-            Text("ChatGPT Mod", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text("ChatGPT", fontSize = 18.sp, fontWeight = FontWeight.Bold)
         }
 
         Button(
@@ -705,7 +706,7 @@ private fun AboutDialog(onDismiss: () -> Unit) {
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                 Text("UI dark avanzata, cronologia locale e accesso ospite.")
-                Text("Modello: Nemotron 3 Ultra Free")
+                Text("Modello: MiMo V2.5 Free")
                 Text("Owner: @XfuckX0")
                 Text("Supporto e aggiornamenti su Telegram.")
             }
