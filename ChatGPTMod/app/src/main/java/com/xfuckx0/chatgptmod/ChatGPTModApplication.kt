@@ -1,7 +1,8 @@
-package com.xfuckx0.chatgptmod
+﻿package com.xfuckx0.chatgptmod
 
 import android.app.Application
 import com.xfuckx0.chatgptmod.data.ChatRepository
+import com.xfuckx0.chatgptmod.data.SessionStore
 import com.xfuckx0.chatgptmod.network.ApiService
 import com.xfuckx0.chatgptmod.network.OpenCodeApi
 import kotlinx.serialization.json.Json
@@ -19,6 +20,8 @@ class ChatGPTModApplication : Application() {
         lateinit var instance: ChatGPTModApplication
             private set
     }
+
+    val sessionStore: SessionStore by lazy { SessionStore(this) }
 
     val apiService: ApiService by lazy {
         val json = Json { ignoreUnknownKeys = true }
