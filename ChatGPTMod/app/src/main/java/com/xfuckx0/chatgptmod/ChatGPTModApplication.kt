@@ -23,7 +23,7 @@ class ChatGPTModApplication : Application() {
     val apiService: ApiService by lazy {
         val json = Json { ignoreUnknownKeys = true }
         Retrofit.Builder()
-            .baseUrl("https://opencode.ai/inference/openai/v1/")
+            .baseUrl("https://opencode.ai/zen/v1/")
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .client(OpenCodeApi.createClient())
             .build()
