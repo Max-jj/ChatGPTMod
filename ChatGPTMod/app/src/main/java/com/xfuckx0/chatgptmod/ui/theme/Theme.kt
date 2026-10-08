@@ -58,7 +58,6 @@ private val LightColorScheme = lightColorScheme(
     onError = Color.White,
     outline = Color(0xFF94A3B8),
     outlineVariant = Color(0xFFCBD5E1),
-    shadow = Color.Black,
     scrim = Color.Black,
     inverseSurface = Color(0xFF111827),
     inverseOnSurface = Color(0xFFF9FAFB),
